@@ -8,12 +8,12 @@ public class Impostor extends Tripulante implements Saboteable {
 
     @Override
     public void habilidadEspecial() {
-        System.out.println("Puedo sabotear salas y eliminar a otros en secreto... shhh.");
+        System.out.println("Nadie sabe que puedo sabotear salas y eliminar a otros en secreto... shhh, no digan nada.");
     }
 
     public void eliminar(Tripulante victima) {
         if (this.getId() == victima.getId()) {
-            System.out.println("No me puedo eliminar a mi mismo, seria super tonto.");
+            System.out.println("No me puedo eliminar a mi mismo, seria muy tonto de mi parte.");
         } else {
             victima.setVivo(false);
             System.out.println("He eliminado a " + victima.getNombre() + " sin que nadie se entere.");
