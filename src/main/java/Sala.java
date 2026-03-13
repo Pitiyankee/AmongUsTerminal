@@ -48,7 +48,7 @@ public class Sala {
         this.saboteada = saboteada;
     }
 
-    // uso esto para imprimir los datos de la sala de forma bonita en la pantalla
+    // uso esto para imprimir los datos de la sala de forma entendible y con presencia en la pantalla
     @Override
     public String toString() {
         return "Sala: " + nombre + " | Saboteada: " + saboteada;
