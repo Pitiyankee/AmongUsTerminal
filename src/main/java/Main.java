@@ -1,44 +1,77 @@
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Scanner;
+
 public class Main {
     public static void main(String[] args) {
-        System.out.println("--- 🚀 BIENVENIDOS A AMONG US TERMINAL BY PITIYANKEE, CARLOS & NASA 🚀 ---");
+        Scanner sc = new Scanner(System.in);
 
-        // 1. Creamos el mapa (las salas)
-        Sala motores = new Sala("Motores");
-        Sala oxigeno = new Sala("Oxigeno");
+        // Mensaje inicial para que se vea bien el juego
+        System.out.println("--- AMONG US TERMINAL ---");
 
-        // 2. Creamos a los jugadores (tus clases heredadas)
-        Ingeniero pedroIng = new Ingeniero("Pedro");
-        Medico carlosMed = new Medico("Carlos");
-        Capitan faridCap = new Capitan("Farid");
-        Impostor traidor = new Impostor("El Enmascarado");
+        // Registro de los jugadores (Min 4, Max 10)
+        System.out.print("¿Cuantos juegan hoy? (4-10): ");
+        int total = sc.nextInt();
+        sc.nextLine();
 
-        System.out.println("\n--- 📋 ESTADO INICIAL DE NUESTRA TRIPULACIÓN ---");
-        System.out.println(pedroIng);
-        System.out.println(carlosMed);
-        System.out.println(traidor);
+        ArrayList<String> nombres = new ArrayList<>();
+        for (int i = 1; i <= total; i++) {
+            System.out.print("Nombre del jugador " + i + ": ");
+            nombres.add(sc.nextLine());
+        }
 
-        System.out.println("\n--- 😱 QUE COMIENCEN LOS JUEGOS DEL HAMBRE (LA ACCIÓN) ---");
+        // Reparto los roles al azar para que nadie sepa quien es quien
+        ArrayList<String> roles = new ArrayList<>();
+        roles.add("impostor");
+        roles.add("capitan");
+        for (int i = 0; i < total - 2; i++) {
+            roles.add(i % 2 == 0 ? "ingeniero" : "medico");
+        }
+        Collections.shuffle(roles);
 
-        // El impostor sabotea y elimina
-        traidor.sabotear(motores);
-        traidor.eliminar(faridCap); // El Capitán ya no podrá llamar a votación
+        // Creamos la lista de tripulantes segun el rol que les toco
+        ArrayList<Tripulante> lista = new ArrayList<>();
+        for (int i = 0; i < total; i++) {
+            String r = roles.get(i);
+            if (r.equals("impostor")) lista.add(new Impostor(nombres.get(i)));
+            else if (r.equals("capitan")) lista.add(new Capitan(nombres.get(i)));
+            else if (r.equals("ingeniero")) lista.add(new Ingeniero(nombres.get(i)));
+            else lista.add(new Medico(nombres.get(i)));
+        }
 
-        // El médico revisa si alguien es sospechoso
-        carlosMed.examinar(traidor);
+        // Metemos las salas minimas que pide Farid
+        ArrayList<Sala> salas = new ArrayList<>();
+        String[] nombresSalas = {"Reactor", "Cafeteria", "Navegacion", "Electricidad", "Armamento", "Comunicaciones"};
+        for (String s : nombresSalas) salas.add(new Sala(s));
 
-        // El ingeniero arregla el desastre
-        pedroIng.repararSala(motores);
+        // Metemos todo en la nave para que empiece la magia
+        Nave nave = new Nave(lista, salas);
 
-        // Intentamos usar una habilidad especial de cada uno
-        System.out.println("\n--- ✨ HABILIDADES ESPECIALES ---");
-        pedroIng.habilidadEspecial();
-        carlosMed.habilidadEspecial();
-        traidor.habilidadEspecial();
+        System.out.println("\n¡Listos! Roles asignados. Pulsa Enter para que empiece la accion...");
+        sc.nextLine();
 
-        System.out.println("\n--- 📊 ESTADO FINAL ---");
-        System.out.println("¿Hey ALguien confirma si el capitán esta vivo? " + (faridCap.isVivo() ? "Sí" : "No (F en el chat)"));
-        System.out.println("¿La sala de motores esta arreglada? " + (motores.isSaboteada() ? "Sigue rota" : "Arreglada por Pedro el super Ingeniero"));
+        // Bucle principal de turnos
+        boolean fin = false;
+        while (!fin) {
+            for (Tripulante t : lista) {
+                if (t.isVivo()) {
+                    nave.limpiarPantalla();
+                    System.out.println("¡Turno de " + t.getNombre() + "!");
+                    System.out.println("Pasa el PC al jugador y pulsa Enter...");
+                    sc.nextLine();
 
-        System.out.println("\n--- ✅ PRUEBA DE TODAS LAS OPCIONES COMPLETADA ---");
+                    System.out.println("TU ROL ES: " + t.getRol().toUpperCase());
+                    System.out.println("\n[1] Pasar turno");
+                    sc.nextLine();
+
+                    // Revisamos si alguien ya gano
+                    if (nave.verificarVictoriaTripulantes() || nave.verificarVictoriaImpostor()) {
+                        fin = true;
+                        break;
+                    }
+                }
+            }
+        }
+        System.out.println("¡Partida terminada!");
     }
 }
