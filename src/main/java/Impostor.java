@@ -1,33 +1,31 @@
-// ¡Listo Carlos! Como ya subiste tus archivos, ya puedo activar todo
-// sin que Farid vea errores rojos en mi pantalla.
+/**
+ * Clase que representa al Impostor en el juego.
+ * Hereda de Tripulante e implementa la interfaz Saboteable.
+ */
 public class Impostor extends Tripulante implements Saboteable {
 
     public Impostor(String nombre) {
-        super(nombre, "impostor");
+        super(nombre, "Impostor");
     }
 
     @Override
-    public void habilidadEspecial() {
-        System.out.println("Nadie sabe que puedo sabotear salas y eliminar a otros en secreto... shhh, no digan nada.");
-    }
-
-    public void eliminar(Tripulante victima) {
-        if (this.getId() == victima.getId()) {
-            System.out.println("No me puedo eliminar a mi mismo, seria muy tonto de mi parte.");
-        } else {
-            victima.setVivo(false);
-            System.out.println("He eliminado a " + victima.getNombre() + " sin que nadie se entere.");
-        }
-    }
-
-    // Ya quité las barras porque ya existe la clase Tarea que hiciste tú
     public void realizarTarea(Tarea tarea) {
-        System.out.println("Estoy fingiendo hacer la tarea: " + tarea.getNombre() + " para que no sospechen, pero estoy tramando algo...");
+        // El impostor no hace tareas, solo finge que las hace
+        System.out.println(getNombre() + " dice: Estoy fingiendo hacer la tarea: " + tarea.getDescripcion() + " para que no sospechen...");
     }
 
     @Override
     public void sabotear(Sala sala) {
-        sala.setSaboteada(true);
-        System.out.println("Acabo de sabotear la sala, no saben de lo que soy capaz" + sala.getNombre() + " JAJAJAJA.");
+        System.out.println("¡SABOTAJE! El impostor " + getNombre() + " ha saboteado la sala: " + sala.getNombre());
+    }
+
+    @Override
+    public void habilidadEspecial() {
+        System.out.println(getNombre() + " usa su habilidad especial: ¡Se mete por las alcantarillas!");
+    }
+
+    @Override
+    public String toString() {
+        return "Impostor: " + getNombre() + " (Estado: " + (isVivo() ? "Vivo" : "Eliminado") + ")";
     }
 }

@@ -1,8 +1,9 @@
--- creo la base de datos y le digo que la use
+-- Borrar si ya existe para evitar errores a Farid
+DROP DATABASE IF EXISTS nave_espacial;
 CREATE DATABASE nave_espacial;
 USE nave_espacial;
 
--- aqui guardo los datos de cada jugador
+-- Esta es la Tabla de los personajes
 CREATE TABLE tripulante (
                             id INT AUTO_INCREMENT PRIMARY KEY,
                             nombre VARCHAR(50) NOT NULL,
@@ -10,14 +11,13 @@ CREATE TABLE tripulante (
                             vivo BOOLEAN DEFAULT TRUE
 );
 
--- aqui guardo las habitaciones de la nave
+-- aqui la Tabla de las salas (Mínimo 6)
 CREATE TABLE sala (
                       id INT AUTO_INCREMENT PRIMARY KEY,
-                      nombre VARCHAR(50) NOT NULL UNIQUE,
-                      saboteada BOOLEAN DEFAULT FALSE
+                      nombre VARCHAR(50) NOT NULL
 );
 
--- aqui guardo las misiones que tienen que hacer
+-- aqui la Tabla de las tareas
 CREATE TABLE tarea (
                        id INT AUTO_INCREMENT PRIMARY KEY,
                        descripcion VARCHAR(100) NOT NULL,
