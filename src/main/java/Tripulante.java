@@ -1,28 +1,24 @@
-// le pongo la palabra abstract porque esta clase es solo un molde general
-// a partir de aqui sacare al ingeniero, al medico y al impostor
-public abstract class Tripulante {
+/**
+ * Carlos, esta es la clase madre. 
+ * He añadido 'implements Trabajable, Votable' para cumplir con lo que 
+ * Farid puso en el diagrama de clases del PDF.
+ */
+public abstract class Tripulante implements Trabajable, Votable {
 
-    // este es el numero que identifica a mi jugador en la base de datos
+    // Atributos obligatorios segun el PDF
     private int id;
-
-    // aqui guardo el nombre del jugador
     private String nombre;
-
-    // aqui guardo si es ingeniero, medico, capitan o impostor
     private String rol;
-
-    // esto me sirve para saber si el jugador sigue vivo o si el impostor lo elimino
     private boolean vivo;
 
-    // este es mi constructor, lo uso para darle nombre y rol al jugador cuando empieza el juego
+    // Constructor que inicializa el nombre y el rol, y activa el true
     public Tripulante(String nombre, String rol) {
         this.nombre = nombre;
         this.rol = rol;
-        // todos los jugadores empiezan vivos por defecto al iniciar la partida
         this.vivo = true;
     }
 
-    // a partir de aqui hago mis getters y setters para poder leer y cambiar los datos del jugador
+    // Getters y Setters que pide farid
     public int getId() {
         return id;
     }
@@ -39,7 +35,6 @@ public abstract class Tripulante {
         this.nombre = nombre;
     }
 
-    // este es especial, solo me devuelve el rol que tiene el jugador
     public String getRol() {
         return rol;
     }
@@ -52,13 +47,32 @@ public abstract class Tripulante {
         this.vivo = vivo;
     }
 
-    // esta es la habilidad especial de cada jugador.
-    // le pongo abstract sin codigo adentro porque cada rol la hara de forma diferente
+    // Metodo de la interfaz
+    @Override
+    public void realizarTarea(Tarea tarea) {
+        if (this.vivo && tarea.getTripulanteAsignado().equals(this)) {
+            tarea.setCompletada(true);
+            System.out.println(nombre + " ha completado la tarea: " + tarea.getDescripcion());
+        } else {
+            System.out.println(nombre + " no puede realizar esta tarea.");
+        }
+    }
+
+    // Metodo de la interfaz Votable
+    @Override
+    public void votar(Tripulante sospechoso) {
+        if (this.vivo) {
+            System.out.println(nombre + " vota a " + sospechoso.getNombre() + " para que lo echen de la nave.");
+        }
+    }
+
+    // Metodo abstracto que cada rol (Ingeniero, Medico, etc, etc etc.) hara a su manera
     public abstract void habilidadEspecial();
 
-    // uso esto para imprimir los datos del jugador de forma bonita en la pantalla negra
+    // Representacion de los string que tambien farid pide (revisalos en el PDF)
     @Override
     public String toString() {
-        return "ID: " + id + " | Nombre: " + nombre + " | Rol: " + rol + " | Vivo: " + vivo;
+        String estado = vivo ? "VIVO" : "ELIMINADO";
+        return "ID: " + id + " | " + nombre + " (" + rol + ") - Estado: " + estado;
     }
 }
