@@ -22,7 +22,7 @@ public class Impostor extends Tripulante implements Saboteable {
 
     // Ya quité las barras porque ya existe la clase Tarea que hiciste tú
     public void realizarTarea(Tarea tarea) {
-        System.out.println("Estoy fingiendo hacer la tarea: " + tarea.getNombre() + " para que no sospechen, pero estoy tramando algo...");
+        System.out.println("Estoy fingiendo hacer la tarea: " + tarea.getDescripcion() + " para que no sospechen, pero estoy tramando algo...");
     }
 
     @Override
