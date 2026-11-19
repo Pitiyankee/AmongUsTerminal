@@ -1,24 +1,22 @@
-// Carlos, bro, aqui hago al ingeniero que hereda del molde Tripulante que hice antes
+/** El ingeniero de la nave: es el único que puede reparar las salas saboteadas. */
 public class Ingeniero extends Tripulante {
 
-    // constructor facilito: le paso el nombre y ya le clavo el rol de ingeniero para no liarme
     public Ingeniero(String nombre) {
         super(nombre, "ingeniero");
     }
 
-    // Farid nos pide que pongamos que hace cada uno, esto solo imprime texto en la pantalla negra
     @Override
     public void habilidadEspecial() {
-        System.out.println("Puedo reparar las salas rotas!");
+        System.out.println("Puedo reparar las salas saboteadas.");
     }
 
-    // Si la sala esta saboteada (true), la pongo en arreglada (false)
+    /** Si la sala está saboteada la deja reparada; si no, no hace nada. */
     public void repararSala(Sala sala) {
         if (sala.isSaboteada()) {
             sala.setSaboteada(false);
-            System.out.println("Listo, ya arregle la sala " + sala.getNombre());
+            System.out.println("Listo, he reparado la sala " + sala.getNombre() + ".");
         } else {
-            System.out.println("Esta sala ya esta bien, no toco nada para no romperla.");
+            System.out.println("La sala " + sala.getNombre() + " ya está en buen estado.");
         }
     }
 }

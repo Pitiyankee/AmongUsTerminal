@@ -1,5 +1,4 @@
-// ¡Listo Carlos! Como ya subiste tus archivos, ya puedo activar todo
-// sin que Farid vea errores rojos en mi pantalla.
+/** El impostor: finge hacer tareas, sabotea salas y elimina tripulantes en secreto. */
 public class Impostor extends Tripulante implements Saboteable {
 
     public Impostor(String nombre) {
@@ -8,26 +7,30 @@ public class Impostor extends Tripulante implements Saboteable {
 
     @Override
     public void habilidadEspecial() {
-        System.out.println("Nadie sabe que puedo sabotear salas y eliminar a otros en secreto... shhh, no digan nada.");
+        System.out.println("Puedo sabotear salas y eliminar tripulantes sin que nadie lo sepa.");
     }
 
+    /** Elimina a un jugador que siga vivo. No puede eliminarse a sí mismo. */
     public void eliminar(Tripulante victima) {
-        if (this.getId() == victima.getId()) {
-            System.out.println("No me puedo eliminar a mi mismo, seria muy tonto de mi parte.");
+        if (this == victima) {
+            System.out.println("No puedes eliminarte a ti mismo.");
+        } else if (!victima.isVivo()) {
+            System.out.println(victima.getNombre() + " ya está eliminado.");
         } else {
             victima.setVivo(false);
-            System.out.println("He eliminado a " + victima.getNombre() + " sin que nadie se entere.");
+            System.out.println("Has eliminado a " + victima.getNombre() + " sin que nadie lo vea.");
         }
     }
 
-    // Ya quité las barras porque ya existe la clase Tarea que hiciste tú
+    /** El impostor no completa tareas: solo aparenta hacerlas para no levantar sospechas. */
+    @Override
     public void realizarTarea(Tarea tarea) {
-        System.out.println("Estoy fingiendo hacer la tarea: " + tarea.getNombre() + " para que no sospechen, pero estoy tramando algo...");
+        System.out.println("Finges hacer la tarea \"" + tarea.getDescripcion() + "\" para que nadie sospeche.");
     }
 
     @Override
     public void sabotear(Sala sala) {
         sala.setSaboteada(true);
-        System.out.println("Acabo de sabotear la sala, no saben de lo que soy capaz" + sala.getNombre() + " JAJAJAJA.");
+        System.out.println("Has saboteado la sala " + sala.getNombre() + ".");
     }
 }

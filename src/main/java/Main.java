@@ -1,77 +1,84 @@
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Scanner;
+import java.util.List;
+import java.util.Random;
 
+/** Punto de entrada: registra a los jugadores, reparte los roles y lanza la partida. */
 public class Main {
+
+    private static final int MIN_JUGADORES = 4;
+    private static final int MAX_JUGADORES = 10;
+    private static final int TAREAS_POR_TRIPULANTE = 2;
+    private static final String[] NOMBRES_SALAS =
+            {"Reactor", "Cafetería", "Navegación", "Electricidad", "Armamento", "Comunicaciones"};
+
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-
-        // Mensaje inicial para que se vea bien el juego
-        System.out.println("--- AMONG US TERMINAL ---");
-
-        // Registro de los jugadores (Min 4, Max 10)
-        System.out.print("¿Cuantos juegan hoy? (4-10): ");
-        int total = sc.nextInt();
-        sc.nextLine();
-
-        ArrayList<String> nombres = new ArrayList<>();
-        for (int i = 1; i <= total; i++) {
-            System.out.print("Nombre del jugador " + i + ": ");
-            nombres.add(sc.nextLine());
+        // Con "--semilla N" el reparto de roles y tareas es siempre el mismo (útil para pruebas).
+        Random random = new Random();
+        if (args.length == 2 && args[0].equals("--semilla")) {
+            random = new Random(Long.parseLong(args[1]));
         }
 
-        // Reparto los roles al azar para que nadie sepa quien es quien
-        ArrayList<String> roles = new ArrayList<>();
+        System.out.println("--- AMONG US TERMINAL ---");
+        int total = Consola.leerEntero("¿Cuántos juegan hoy? (" + MIN_JUGADORES + "-" + MAX_JUGADORES + "): ",
+                MIN_JUGADORES, MAX_JUGADORES);
+        List<String> nombres = pedirNombres(total);
+
+        Nave nave = crearNave(nombres, random);
+        Consola.esperarEnter("\n¡Listos! Roles asignados en secreto. Pulsa Enter para que empiece la acción...");
+
+        Partida partida = new Partida(nave, random);
+        String ganador = partida.jugar();
+
+        if (Consola.confirmar("\n¿Guardar la partida en la base de datos MySQL?")) {
+            GuardadoPartida.guardar(nave, ganador);
+        }
+    }
+
+    private static List<String> pedirNombres(int total) {
+        List<String> nombres = new ArrayList<>();
+        while (nombres.size() < total) {
+            String nombre = Consola.leerLinea("Nombre del jugador " + (nombres.size() + 1) + ": ");
+            if (nombre.isEmpty()) {
+                System.out.println("El nombre no puede estar vacío.");
+            } else if (nombres.contains(nombre)) {
+                System.out.println("Ese nombre ya está en uso.");
+            } else {
+                nombres.add(nombre);
+            }
+        }
+        return nombres;
+    }
+
+    /** Un impostor, un capitán y el resto repartidos entre ingenieros y médicos, al azar. */
+    static Nave crearNave(List<String> nombres, Random random) {
+        int total = nombres.size();
+        List<String> roles = new ArrayList<>();
         roles.add("impostor");
         roles.add("capitan");
         for (int i = 0; i < total - 2; i++) {
             roles.add(i % 2 == 0 ? "ingeniero" : "medico");
         }
-        Collections.shuffle(roles);
+        Collections.shuffle(roles, random);
 
-        // Creamos la lista de tripulantes segun el rol que les toco
-        ArrayList<Tripulante> lista = new ArrayList<>();
+        ArrayList<Tripulante> tripulantes = new ArrayList<>();
         for (int i = 0; i < total; i++) {
-            String r = roles.get(i);
-            if (r.equals("impostor")) lista.add(new Impostor(nombres.get(i)));
-            else if (r.equals("capitan")) lista.add(new Capitan(nombres.get(i)));
-            else if (r.equals("ingeniero")) lista.add(new Ingeniero(nombres.get(i)));
-            else lista.add(new Medico(nombres.get(i)));
-        }
-
-        // Metemos las salas minimas que pide Farid
-        ArrayList<Sala> salas = new ArrayList<>();
-        String[] nombresSalas = {"Reactor", "Cafeteria", "Navegacion", "Electricidad", "Armamento", "Comunicaciones"};
-        for (String s : nombresSalas) salas.add(new Sala(s));
-
-        // Metemos todo en la nave para que empiece la magia
-        Nave nave = new Nave(lista, salas);
-
-        System.out.println("\n¡Listos! Roles asignados. Pulsa Enter para que empiece la accion...");
-        sc.nextLine();
-
-        // Bucle principal de turnos
-        boolean fin = false;
-        while (!fin) {
-            for (Tripulante t : lista) {
-                if (t.isVivo()) {
-                    nave.limpiarPantalla();
-                    System.out.println("¡Turno de " + t.getNombre() + "!");
-                    System.out.println("Pasa el PC al jugador y pulsa Enter...");
-                    sc.nextLine();
-
-                    System.out.println("TU ROL ES: " + t.getRol().toUpperCase());
-                    System.out.println("\n[1] Pasar turno");
-                    sc.nextLine();
-
-                    // Revisamos si alguien ya gano
-                    if (nave.verificarVictoriaTripulantes() || nave.verificarVictoriaImpostor()) {
-                        fin = true;
-                        break;
-                    }
-                }
+            String nombre = nombres.get(i);
+            switch (roles.get(i)) {
+                case "impostor" -> tripulantes.add(new Impostor(nombre));
+                case "capitan" -> tripulantes.add(new Capitan(nombre));
+                case "ingeniero" -> tripulantes.add(new Ingeniero(nombre));
+                default -> tripulantes.add(new Medico(nombre));
             }
         }
-        System.out.println("¡Partida terminada!");
+
+        ArrayList<Sala> salas = new ArrayList<>();
+        for (String nombreSala : NOMBRES_SALAS) {
+            salas.add(new Sala(nombreSala));
+        }
+
+        Nave nave = new Nave(tripulantes, salas);
+        nave.asignarTareas(TAREAS_POR_TRIPULANTE, random);
+        return nave;
     }
 }

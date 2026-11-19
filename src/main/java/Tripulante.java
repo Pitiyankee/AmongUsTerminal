@@ -1,24 +1,20 @@
 /**
- * Carlos, esta es la clase madre. 
- * He añadido 'implements Trabajable, Votable' para cumplir con lo que 
- * Farid puso en el diagrama de clases del PDF.
+ * Clase base de todos los jugadores de la nave.
+ * Cada rol (Capitán, Ingeniero, Médico, Impostor) hereda de ella y define su habilidad especial.
  */
 public abstract class Tripulante implements Trabajable, Votable {
 
-    // Atributos obligatorios segun el PDF
     private int id;
     private String nombre;
     private String rol;
     private boolean vivo;
 
-    // Constructor que inicializa el nombre y el rol, y activa el true
     public Tripulante(String nombre, String rol) {
         this.nombre = nombre;
         this.rol = rol;
         this.vivo = true;
     }
 
-    // Getters y Setters que pide farid
     public int getId() {
         return id;
     }
@@ -47,32 +43,39 @@ public abstract class Tripulante implements Trabajable, Votable {
         this.vivo = vivo;
     }
 
-    // Metodo de la interfaz
+    /**
+     * Completa la tarea si el tripulante está vivo, la tarea es suya, no está hecha
+     * y su sala no está saboteada.
+     */
     @Override
     public void realizarTarea(Tarea tarea) {
-        if (this.vivo && tarea.getTripulanteAsignado().equals(this)) {
+        if (!vivo || tarea.getTripulanteAsignado() != this) {
+            System.out.println(nombre + " no puede realizar esta tarea.");
+        } else if (tarea.isCompletada()) {
+            System.out.println("La tarea \"" + tarea.getDescripcion() + "\" ya está completada.");
+        } else if (tarea.getSala() != null && tarea.getSala().isSaboteada()) {
+            System.out.println("La sala " + tarea.getSala().getNombre()
+                    + " está saboteada. Hace falta un ingeniero que la repare antes de seguir.");
+        } else {
             tarea.setCompletada(true);
             System.out.println(nombre + " ha completado la tarea: " + tarea.getDescripcion());
-        } else {
-            System.out.println(nombre + " no puede realizar esta tarea.");
         }
     }
 
-    // Metodo de la interfaz Votable
+    /** El voto es secreto: solo se informa de que el jugador ha votado, no de a quién. */
     @Override
     public void votar(Tripulante sospechoso) {
-        if (this.vivo) {
-            System.out.println(nombre + " vota a " + sospechoso.getNombre() + " para que lo echen de la nave.");
+        if (vivo) {
+            System.out.println("Voto registrado.");
         }
     }
 
-    // Metodo abstracto que cada rol (Ingeniero, Medico, etc, etc etc.) hara a su manera
+    /** Cada rol describe y ejecuta su habilidad a su manera. */
     public abstract void habilidadEspecial();
 
-    // Representacion de los string que tambien farid pide (revisalos en el PDF)
     @Override
     public String toString() {
         String estado = vivo ? "VIVO" : "ELIMINADO";
-        return "ID: " + id + " | " + nombre + " (" + rol + ") - Estado: " + estado;
+        return nombre + " (" + rol + ") - " + estado;
     }
 }
