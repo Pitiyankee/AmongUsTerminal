@@ -1,37 +1,32 @@
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
-// Y aquí en esta seccion va el de los tripulantes. Funciona casi igual que el de las salas,
-// pero con los datos de los jugadores. Avisame si tienes dudas.
+/** Acceso a la tabla tripulante. */
 public class TripulanteDAO {
 
-    private Connection conexion;
+    private final Connection conexion;
 
     public TripulanteDAO(Connection conexion) {
         this.conexion = conexion;
     }
 
-    // Carlos, con este método guardamos al jugador (sea médico, impostor, etc.) en la tabla
-    public void guardarTripulante(Tripulante tripulante) {
-        // El comando SQL para insertar al jugador. Tres huecos: nombre, rol y si está vivo.
-        String sql = "INSERT INTO tripulantes (nombre, rol, vivo) VALUES (?, ?, ?)";
-
-        try {
-            PreparedStatement orden = conexion.prepareStatement(sql);
-
-            // Relleno los datos sacándolos de la información del jugador
-            orden.setString(1, tripulante.getNombre());
-            orden.setString(2, tripulante.getRol());
-            orden.setBoolean(3, tripulante.isVivo());
-
-            // Envío la orden
+    /** Guarda al jugador (con su rol y si sigue vivo) y le asigna el id generado. */
+    public void guardarTripulante(Tripulante tripulante, int idPartida) throws SQLException {
+        String sql = "INSERT INTO tripulante (id_partida, nombre, rol, vivo) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement orden = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            orden.setInt(1, idPartida);
+            orden.setString(2, tripulante.getNombre());
+            orden.setString(3, tripulante.getRol());
+            orden.setBoolean(4, tripulante.isVivo());
             orden.executeUpdate();
-            System.out.println("¡Listo! " + tripulante.getNombre() + " ya está en la base de datos como " + tripulante.getRol());
-
-        } catch (SQLException e) {
-            System.out.println("Uy, hubo un error al guardar al tripulante.");
-            e.printStackTrace();
+            try (ResultSet claves = orden.getGeneratedKeys()) {
+                if (claves.next()) {
+                    tripulante.setId(claves.getInt(1));
+                }
+            }
         }
     }
 }

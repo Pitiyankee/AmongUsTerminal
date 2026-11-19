@@ -1,63 +1,98 @@
 # AmongUsTerminal
 
-Versión por terminal del juego *Among Us*, desarrollada en **Java** con **Maven** como proyecto de fin de trimestre del módulo de Programación (ACCEDIA FP, Madrid). Trabajo en equipo con control de versiones en Git y GitHub.
+Versión por terminal del juego *Among Us*, desarrollada en **Java 17** con **Maven**. Juego de roles ocultos por turnos para 4 a 10 jugadores que comparten un mismo ordenador, con votaciones, sabotajes y guardado opcional de las partidas en **MySQL**. Proyecto en equipo con control de versiones en Git y GitHub.
 
-## Descripción
+## Cómo se juega
 
-Juego de roles ocultos por turnos para **4 a 10 jugadores** que comparten un mismo ordenador. Cada jugador recibe en secreto un rol y se van pasando el ordenador de uno en uno, sin que los demás lo vean:
+Cada jugador recibe en secreto un rol y se van pasando el ordenador de uno en uno. La pantalla se borra entre turnos para que nadie vea el rol ni las acciones de los demás.
 
-| Rol | Cantidad | Descripción |
+| Rol | Cantidad | Qué puede hacer |
 |---|---|---|
-| Impostor | 1 | Finge trabajar, sabotea salas y elimina tripulantes |
-| Capitán | 1 | Tripulante con habilidad especial propia |
-| Ingeniero y Médico | el resto, alternados | Tripulantes con habilidad especial propia |
+| **Impostor** | 1 | Fingir tareas, sabotear salas y eliminar a un jugador en secreto |
+| **Capitán** | 1 | Hacer tareas y convocar una reunión de emergencia |
+| **Ingeniero** | el resto, alternados | Hacer tareas y reparar salas saboteadas |
+| **Médico** | el resto, alternados | Hacer tareas y examinar a un jugador para saber si es el impostor |
 
-Los roles se reparten al azar (`Collections.shuffle`) y la partida se desarrolla por turnos, con limpieza de pantalla entre jugadores para que nadie vea el rol del anterior.
+**Turnos.** En su turno cada jugador vivo realiza una acción. Cada tripulante tiene 2 tareas en distintas salas de la nave (Reactor, Cafetería, Navegación, Electricidad, Armamento y Comunicaciones).
 
-## Aspectos técnicos
+**Sabotaje.** Una sala saboteada bloquea las tareas de esa sala hasta que un ingeniero la repare.
 
-- **Programación orientada a objetos:** clase abstracta `Tripulante` con las subclases `Capitan`, `Ingeniero`, `Medico` e `Impostor`; cada rol implementa a su manera el método abstracto `habilidadEspecial()`.
-- **Interfaces:** `Trabajable` (hacer tareas), `Votable` (votar) y `Saboteable` (sabotear salas, exclusiva del impostor).
-- **Modelo de la nave:** `Nave`, `Sala` y `Tarea` representan el estado de la partida; `Nave` comprueba las condiciones de victoria de tripulantes e impostor.
-- **Colecciones:** `ArrayList` para jugadores y salas; reparto aleatorio de roles.
-- **Capa de acceso a datos:** `DBUtil` (conexión JDBC) y los DAO `SalaDAO` y `TripulanteDAO`, que usan `PreparedStatement`.
-- **Base de datos:** `script.sql` crea el esquema MySQL `nave_espacial` con las tablas `tripulante`, `sala` y `tarea`, con claves primarias y foráneas.
-- **Flujo de trabajo en Git:** una rama por funcionalidad (`feature/...`) integrada mediante pull requests.
+**Reuniones.** Cuando se encuentra un cuerpo, o cuando el capitán lo decide, todos los jugadores vivos votan en secreto a un sospechoso o saltan el voto. Se expulsa al más votado; si hay empate, o si saltar tiene tantos votos como el más votado, no se expulsa a nadie. Al expulsar a alguien se revela si era el impostor.
 
-## Estado del proyecto
+**Victoria.**
+- Ganan los **tripulantes** si se completan todas las tareas o si el impostor es eliminado.
+- Gana el **impostor** cuando quedan tantos impostores vivos como tripulantes.
 
-**Funciona:** registro de jugadores, reparto aleatorio de roles, turnos con rol oculto y limpieza de pantalla, modelo de dominio completo y comprobación de victoria.
-
-**Pendiente:**
-- Integrar en el bucle de la partida las acciones por rol (tareas, sabotaje, eliminación y votación), que ya están definidas en las clases.
-- Conectar los DAO a la partida para guardar los datos en MySQL. Ahora mismo la partida no usa la base de datos.
-- Añadir el driver JDBC de MySQL como dependencia en `pom.xml`.
+Al terminar, el juego ofrece guardar la partida en MySQL.
 
 ## Cómo ejecutarlo
 
-**Requisitos:** JDK y Maven. El `pom.xml` está configurado para Java 25; con un JDK anterior hay que ajustar `maven.compiler.source` y `maven.compiler.target`.
+**Requisitos:** JDK 17 o superior y Maven.
 
 ```bash
 git clone https://github.com/Pitiyankee/AmongUsTerminal.git
 cd AmongUsTerminal
-mvn compile
-java -cp target/classes Main
+mvn compile exec:java
 ```
 
-También se puede abrir la carpeta en IntelliJ IDEA y ejecutar `Main`. La partida actual **no necesita** MySQL. Para trabajar con la capa de datos, ejecuta `script.sql` en tu servidor MySQL y ajusta el usuario y la contraseña en `DBUtil.java`.
+También se puede abrir la carpeta en IntelliJ IDEA y ejecutar `Main`. Con `--semilla N` el reparto de roles y tareas es siempre el mismo, útil para probar o depurar:
+
+```bash
+mvn compile exec:java -Dexec.args="--semilla 42"
+```
+
+### Guardar partidas en MySQL (opcional)
+
+El juego funciona sin base de datos. Para guardar las partidas:
+
+1. Ejecuta `script.sql` en tu servidor MySQL 8 para crear la base de datos `nave_espacial`.
+2. Configura la conexión con variables de entorno (no hay usuario ni contraseña en el código):
+
+| Variable | Valor por defecto |
+|---|---|
+| `DB_URL` | `jdbc:mysql://localhost:3306/nave_espacial` |
+| `DB_USER` | `root` |
+| `DB_PASS` | *(vacío)* |
+
+Si la base de datos no está disponible, el juego avisa y sigue sin cerrarse.
+
+## Pruebas
+
+```bash
+mvn test
+```
+
+25 pruebas automáticas con JUnit 5:
+- **Reglas de cada rol:** eliminar, sabotear, reparar, tareas bloqueadas y jugadores eliminados.
+- **Condiciones de victoria y votación:** mayoría, empates y votos saltados.
+- **Partidas completas simuladas por teclado:** victoria de los tripulantes por tareas, del impostor por eliminaciones y por expulsión del impostor.
+- **Guardado en base de datos:** inserción de la partida completa, varias partidas seguidas y rollback si algo falla. Estas pruebas se ejecutan sobre H2 en modo compatible con MySQL, cargando el mismo `script.sql`.
+
+## Aspectos técnicos
+
+- **Programación orientada a objetos:** clase abstracta `Tripulante` con las subclases `Capitan`, `Ingeniero`, `Medico` e `Impostor`; cada rol implementa su `habilidadEspecial()`.
+- **Interfaces:** `Trabajable` (hacer tareas), `Votable` (votar) y `Saboteable` (solo el impostor).
+- **Separación de responsabilidades:** `Nave` contiene las reglas (victoria, votación, reparto de tareas), `Partida` controla el desarrollo por turnos, `Consola` encapsula la entrada por teclado y `Main` solo prepara la partida.
+- **JDBC con patrón DAO:** `PartidaDAO`, `SalaDAO`, `TripulanteDAO` y `TareaDAO` usan `PreparedStatement` y claves generadas; `GuardadoPartida` guarda todo en una **transacción** con `commit` y `rollback`.
+- **Base de datos:** esquema MySQL con claves primarias y foráneas (`script.sql`).
+- **Configuración fuera del código:** credenciales por variables de entorno.
+- **Git:** una rama por funcionalidad integrada mediante pull requests.
 
 ## Estructura
 
 ```
 src/main/java/
-├── Main.java            Registro de jugadores, reparto de roles y bucle de turnos
-├── Nave.java            Estado de la partida y condiciones de victoria
-├── Tripulante.java      Clase abstracta base de todos los roles
+├── Main.java              Registro de jugadores, reparto de roles y arranque
+├── Partida.java           Turnos, acciones, reuniones y resultado
+├── Nave.java              Reglas: victoria, votación y reparto de tareas
+├── Consola.java           Entrada por teclado validada
+├── Tripulante.java        Clase abstracta base
 ├── Capitan.java · Ingeniero.java · Medico.java · Impostor.java
-├── Trabajable.java · Votable.java · Saboteable.java    Interfaces
+├── Trabajable.java · Votable.java · Saboteable.java        Interfaces
 ├── Sala.java · Tarea.java
-├── DBUtil.java · SalaDAO.java · TripulanteDAO.java     Acceso a datos (JDBC)
-script.sql               Esquema de la base de datos
+└── DBUtil.java · PartidaDAO.java · SalaDAO.java · TripulanteDAO.java · TareaDAO.java · GuardadoPartida.java
+src/test/java/             Pruebas con JUnit 5
+script.sql                 Esquema de la base de datos
 ```
 
 ## Equipo

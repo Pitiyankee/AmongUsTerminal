@@ -1,17 +1,12 @@
-/**
- * Carlos, aqui te dejo las clases que representa las misiones de la nave.
- * El diagrama UML dice que cada tarea necesita saber en que sala se hace
- * y quien la tiene asignada.
- */
+/** Una misión que un tripulante debe completar en una sala de la nave. */
 public class Tarea {
-    // Atributos obligatorios segun el PDF
+
     private int id;
     private String descripcion;
     private boolean completada;
     private Tripulante tripulanteAsignado;
     private Sala sala;
 
-    // Constructor completo para que los DAOs funcionen bien (igual revisa esto porque aun me enrredo)
     public Tarea(String descripcion, Tripulante tripulanteAsignado, Sala sala) {
         this.descripcion = descripcion;
         this.tripulanteAsignado = tripulanteAsignado;
@@ -19,7 +14,6 @@ public class Tarea {
         this.completada = false;
     }
 
-    // Getters y Setters necesarios para que Tripulante no de error
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -37,6 +31,7 @@ public class Tarea {
 
     @Override
     public String toString() {
-        return "Tarea: " + descripcion + " | Sala: " + (sala != null ? sala.getNombre() : "Sin sala") + " | Estado: " + (completada ? "Hecha" : "Pendiente");
+        return descripcion + " (" + (sala != null ? sala.getNombre() : "sin sala") + ")"
+                + " - " + (completada ? "Hecha" : "Pendiente");
     }
 }

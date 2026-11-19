@@ -1,4 +1,4 @@
-// Esta sirve para que todos puedan votar al impostor
+/** Quien puede votar en una reunión para expulsar a un sospechoso. */
 public interface Votable {
     void votar(Tripulante sospechoso);
 }
